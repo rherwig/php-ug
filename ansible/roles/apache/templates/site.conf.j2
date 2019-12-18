@@ -1,0 +1,15 @@
+<VirtualHost *:{{ apache_port }}>
+   ServerName "HOST_NAME"
+   DocumentRoot /var/www/html/public
+
+   <Directory /var/www/html>
+      Options Indexes FollowSymLinks MultiViews
+      AllowOverride All
+      Order allow,deny
+      allow from all
+   </Directory>
+
+   ErrorLog ${APACHE_LOG_DIR}/custom.error.log
+   CustomLog ${APACHE_LOG_DIR}/custom.access.log combined
+   LogLevel debug
+</VirtualHost>

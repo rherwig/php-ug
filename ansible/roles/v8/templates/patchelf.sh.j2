@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+for A in /opt/libv8-{{ php_v8_version }}/lib/*.so; do patchelf --set-rpath '$ORIGIN' $A;done

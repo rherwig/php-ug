@@ -1,0 +1,18 @@
+---
+
+php_v8_php_version: 7.2
+
+# Version of libv8 to be installed
+php_v8_version: 7.5
+
+# PPA that libv8 is provided by
+php_v8_ppa: 'ppa:stesie/libv8'
+
+# Github repository for v8js extension
+php_v8_repository: 'https://github.com/phpv8/v8js.git'
+
+# PHP services based on global configuration
+php_v8_php_services: '{{ php_services | d(["apache2"]) }}'
+
+# PHP extensions based on global configuration
+php_v8_php_extensions: '{{ php_extensions | d([]) }}'

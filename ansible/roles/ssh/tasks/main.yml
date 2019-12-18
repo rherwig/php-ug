@@ -1,0 +1,17 @@
+---
+
+- name: enable password authentication for virtual machine
+  become: true
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication no$'
+    line: 'PasswordAuthentication yes'
+  when: ssh_enable_password_auth
+  notify: restart-ssh
+
+- name: add gitlab to known hosts
+  become: true
+  known_hosts:
+    path: /etc/ssh/ssh_known_hosts
+    name: gitlab.com
+    key: "{{ lookup('pipe', 'ssh-keyscan -t rsa gitlab.com') }}"

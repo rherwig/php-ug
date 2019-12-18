@@ -1,0 +1,13 @@
+# IDE
+.idea/
+*.iml
+
+# Log
+*.log
+
+# Vagrant
+.vagrant/
+
+# Modules
+vendor/
+node_modules/

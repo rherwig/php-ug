@@ -1,0 +1,71 @@
+---
+
+- name: install apache
+  become: true
+  apt:
+    name: apache2
+    state: present
+
+- name: enable mod rewrite
+  become: true
+  apache2_module:
+    name: rewrite
+    state: present
+  notify: restart-apache
+
+- name: change apache user
+  become: true
+  template:
+    src: envvars.j2
+    dest: /etc/apache2/envvars
+  notify: restart-apache
+
+- name: change apache port
+  become: true
+  template:
+    src: ports.conf.j2
+    dest: /etc/apache2/ports.conf
+  notify: restart-apache
+
+- name: change directory permissions
+  become: true
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ apache_user }}"
+    group: "{{ apache_group }}"
+  with_items:
+    - /var/lock/apache2
+    - /var/log/apache2
+    - /var/www
+
+- name: create webroot
+  become: true
+  file:
+    path: "{{ apache_webroot }}"
+    state: directory
+    owner: "{{ apache_user }}"
+    group: "{{ apache_group }}"
+    mode: 0775
+
+- name: remove default index
+  become: true
+  file:
+    path: "{{ apache_webroot }}/index.html"
+    state: absent
+
+- name: copy custom vhost
+  become: true
+  template:
+    src: site.conf.j2
+    dest: /etc/apache2/sites-available/site.conf
+
+- name: disable default vhost
+  become: true
+  command: a2dissite 000-default
+  notify: reload-apache
+
+- name: enable custom vhost
+  become: true
+  command: a2ensite site
+  notify: reload-apache

@@ -1,0 +1,22 @@
+{
+  "name": "hrwg/phpug",
+  "type": "project",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Rico Herwig",
+      "email": "r.herwig@shopmacher.de"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Hrwg\\PhpUG\\": "src/"
+    }
+  },
+  "require": {
+    "guzzlehttp/guzzle": "^6.5"
+  },
+  "require-dev": {
+    "phpv8/v8js-stubs": "^1.4"
+  }
+}

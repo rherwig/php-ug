@@ -1,0 +1,6 @@
+---
+
+apache_user: vagrant
+apache_group: vagrant
+apache_port: 80
+apache_webroot: /var/www/html

@@ -1,0 +1,93 @@
+---
+
+- name: 'ensure ppa is present'
+  become: true
+  apt_repository:
+    repo: '{{ php_v8_ppa }}'
+    state: present
+    validate_certs: false
+    update_cache: true
+
+- name: 'ensure libv8 is present'
+  become: true
+  apt:
+    name: '{{ packages }}'
+    state: present
+  vars:
+    packages:
+      - 'patchelf'
+      - 'libv8-{{ php_v8_version }}'
+      - 'libv8-{{ php_v8_version }}-dev'
+
+- name: 'ensure libv8 patch script is present'
+  template:
+    src: 'patchelf.sh.j2'
+    dest: '/tmp/patchelf.sh.j2'
+
+- name: 'register if v8 extension is already built'
+  stat:
+    path: '/tmp/v8js/modules/v8js.so'
+  register: extension
+
+- name: 'ensure v8js extension is built'
+  become: true
+  block:
+    - name: 'ensure v8js repository is present'
+      git:
+        repo: '{{ php_v8_repository }}'
+        dest: '/tmp/v8js'
+
+    - name: 'ensure v8js is setup for php version'
+      command: 'phpize'
+      args:
+        chdir: '/tmp/v8js'
+
+    - name: 'ensure v8js setup is configured'
+      command: './configure --with-v8js=/opt/libv8-{{ php_v8_version }}'
+      args:
+        chdir: '/tmp/v8js'
+
+    - name: 'ensure v8js is prepared for installation'
+      command: 'make'
+      args:
+        chdir: '/tmp/v8js'
+
+    - name: 'ensure v8js is built'
+      command: 'make install'
+      args:
+        chdir: '/tmp/v8js'
+  when: not extension.stat.exists
+
+- name: 'register php extension directory'
+  shell: "php -i | grep extension_dir | awk '{ print $3 }'"
+  register: php_extension_dir
+  changed_when: false
+
+- name: 'ensure v8js extension is copied to extension directory'
+  become: true
+  copy:
+    src: '/tmp/v8js/modules/v8js.so'
+    dest: '{{ php_extension_dir.stdout }}/v8js.so'
+    remote_src: true
+    mode: 0644
+
+- name: 'ensure extension config is present'
+  become: true
+  copy:
+    src: 'v8js.ini'
+    dest: '/etc/php/{{ php_v8_php_version }}/mods-available/v8js.ini'
+
+- name: 'ensure extension config is linked for cli'
+  become: true
+  file:
+    src: '/etc/php/{{ php_v8_php_version }}/mods-available/v8js.ini'
+    dest: '/etc/php/{{ php_v8_php_version }}/cli/conf.d/20-v8js.ini'
+    state: link
+
+- name: 'ensure extension config is linked for apache2'
+  become: true
+  file:
+    src: '/etc/php/{{ php_v8_php_version }}/mods-available/v8js.ini'
+    dest: '/etc/php/{{ php_v8_php_version }}/apache2/conf.d/20-v8js.ini'
+    state: link
+  notify: restart-apache
